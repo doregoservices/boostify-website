@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Scroll reveal animations
   const revealElements = document.querySelectorAll('.service-card, .pack-card, .step, .portfolio-item, .testimonial-card, .about-grid, .contact-grid');
-  const revealObserver = new IntersectionObserver((entries) => {
+  window.revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('active');
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   revealElements.forEach(el => {
     el.classList.add('reveal');
-    revealObserver.observe(el);
+    window.revealObserver.observe(el);
   });
 
   // Load dynamic config
@@ -305,6 +305,7 @@ async function loadTestimonials() {
     }).join('');
 
     grid.insertAdjacentHTML('beforeend', cards);
+    grid.querySelectorAll('.reveal').forEach(el => window.revealObserver.observe(el));
   } catch (error) {
     console.error('Erreur chargement témoignages:', error);
     // Keep default static testimonials on error
@@ -338,6 +339,7 @@ async function loadPortfolio() {
     }).join('');
 
     grid.insertAdjacentHTML('beforeend', items);
+    grid.querySelectorAll('.reveal').forEach(el => window.revealObserver.observe(el));
   } catch (error) {
     console.error('Erreur chargement portfolio:', error);
     // Keep default static portfolio on error
