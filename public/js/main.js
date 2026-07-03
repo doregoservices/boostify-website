@@ -271,7 +271,7 @@ function updateContactLink(prefix, value, displayText) {
   });
 }
 
-// Load testimonials (only replaces if server returns data)
+// Load testimonials (appends server-approved testimonials to existing static ones)
 async function loadTestimonials() {
   const grid = document.getElementById('testimonialsGrid');
   if (!grid) return;
@@ -285,7 +285,7 @@ async function loadTestimonials() {
       return;
     }
 
-    grid.innerHTML = result.testimonials.map(t => {
+    const cards = result.testimonials.map(t => {
       const initials = t.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
       const stars = '⭐'.repeat(t.rating || 5);
       return `
@@ -303,13 +303,15 @@ async function loadTestimonials() {
         </div>
       `;
     }).join('');
+
+    grid.insertAdjacentHTML('beforeend', cards);
   } catch (error) {
     console.error('Erreur chargement témoignages:', error);
     // Keep default static testimonials on error
   }
 }
 
-// Load portfolio (only replaces if server returns data)
+// Load portfolio (appends server portfolio items to existing static ones)
 async function loadPortfolio() {
   const grid = document.getElementById('portfolioGrid');
   if (!grid) return;
@@ -323,7 +325,7 @@ async function loadPortfolio() {
       return;
     }
 
-    grid.innerHTML = result.items.map(item => {
+    const items = result.items.map(item => {
       const title = currentLang === 'en' && item.titleEn ? item.titleEn : item.title;
       return `
         <div class="portfolio-item reveal">
@@ -334,6 +336,8 @@ async function loadPortfolio() {
         </div>
       `;
     }).join('');
+
+    grid.insertAdjacentHTML('beforeend', items);
   } catch (error) {
     console.error('Erreur chargement portfolio:', error);
     // Keep default static portfolio on error
