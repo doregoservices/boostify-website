@@ -20,7 +20,10 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (MONGODB_URI) {
   mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ Connecté à MongoDB'))
+    .then(() => {
+      console.log('✅ Connecté à MongoDB');
+      portfolioRouter.migratePortfolioImages();
+    })
     .catch(err => {
       console.error('❌ Erreur connexion MongoDB:', err.message);
       console.log('⚠️  Le serveur fonctionne sans base de données (mode fichier temporaire).');

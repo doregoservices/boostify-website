@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const { body, validationResult } = require('express-validator');
 const Portfolio = require('../models/Portfolio');
 const { adminAuth } = require('../middleware/auth');
@@ -135,7 +137,16 @@ router.post('/upload', adminAuth, upload.single('image'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Aucune image uploadée.' });
     }
-    const imagePath = `images/${req.file.filename}`;
+    const filePath = req.file.path;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let mime = 'image/jpeg';
+    if (ext === '.png') mime = 'image/png';
+    else if (ext === '.gif') mime = 'image/gif';
+    else if (ext === '.svg') mime = 'image/svg+xml';
+    else if (ext === '.webp') mime = 'image/webp';
+    const base64 = fs.readFileSync(filePath).toString('base64');
+    const imagePath = `data:${mime};base64,${base64}`;
+    fs.unlinkSync(filePath);
     res.json({ success: true, message: 'Image uploadée.', imagePath });
   } catch (error) {
     console.error('Erreur upload portfolio:', error);
@@ -186,5 +197,33 @@ router.delete('/:id', adminAuth, async (req, res) => {
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });
+
+async function migratePortfolioImages() {
+  if (!isMongoConnected()) return;
+  try {
+    const items = await Portfolio.find({ imagePath: { $regex: '^images/' } });
+    for (const item of items) {
+      const filePath = path.join(__dirname, '../../public', item.imagePath);
+      if (fs.existsSync(filePath)) {
+        const ext = path.extname(filePath).toLowerCase();
+        let mime = 'image/jpeg';
+        if (ext === '.png') mime = 'image/png';
+        else if (ext === '.gif') mime = 'image/gif';
+        else if (ext === '.svg') mime = 'image/svg+xml';
+        else if (ext === '.webp') mime = 'image/webp';
+        const base64 = fs.readFileSync(filePath).toString('base64');
+        item.imagePath = `data:${mime};base64,${base64}`;
+        await item.save();
+        console.log('📦 Image portfolio migrée en base64:', item.title);
+      } else {
+        console.log('⚠️ Fichier image non trouvé pour migration:', item.imagePath);
+      }
+    }
+  } catch (error) {
+    console.error('Erreur migration portfolio:', error.message);
+  }
+}
+
+router.migratePortfolioImages = migratePortfolioImages;
 
 module.exports = router;
