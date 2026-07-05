@@ -4,6 +4,7 @@ const path = require('path');
 const Config = require('../models/Config');
 const { adminAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { processImageFile, processBase64Image } = require('../utils/image');
 const { isMongoConnected, readJsonFile, writeJsonFile } = require('../utils/db');
 const router = express.Router();
 
@@ -99,15 +100,22 @@ router.post('/upload-logo', adminAuth, upload.single('logo'), async (req, res) =
 
     const filePath = req.file.path;
     const ext = path.extname(req.file.originalname).toLowerCase();
-    let mime = 'image/jpeg';
-    if (ext === '.png') mime = 'image/png';
-    else if (ext === '.gif') mime = 'image/gif';
-    else if (ext === '.svg') mime = 'image/svg+xml';
-    else if (ext === '.webp') mime = 'image/webp';
-    const base64 = fs.readFileSync(filePath).toString('base64');
-    const logoPath = `data:${mime};base64,${base64}`;
-    const config = await saveConfig({ logoPath, darkLogoPath: logoPath });
+
+    let logoPath;
+    if (ext === '.svg') {
+      const base64 = fs.readFileSync(filePath).toString('base64');
+      logoPath = `data:image/svg+xml;base64,${base64}`;
+    } else {
+      const processed = await processImageFile(filePath, 800, 800);
+      if (!processed) {
+        fs.unlinkSync(filePath);
+        return res.status(500).json({ success: false, message: 'Erreur traitement logo.' });
+      }
+      logoPath = `data:${processed.mime};base64,${processed.buffer.toString('base64')}`;
+    }
+
     fs.unlinkSync(filePath);
+    const config = await saveConfig({ logoPath, darkLogoPath: logoPath });
 
     res.json({ success: true, message: 'Logo uploadé avec succès.', logoPath, config });
   } catch (error) {
@@ -115,5 +123,25 @@ router.post('/upload-logo', adminAuth, upload.single('logo'), async (req, res) =
     res.status(500).json({ success: false, message: 'Erreur lors de l\'upload du logo.' });
   }
 });
+
+async function migrateLogo() {
+  if (!isMongoConnected()) return;
+  try {
+    const config = await Config.getConfig();
+    if (config.logoPath && config.logoPath.startsWith('data:') && config.logoPath.length > 200000) {
+      const resized = await processBase64Image(config.logoPath, 800, 800);
+      if (resized && resized !== config.logoPath) {
+        config.logoPath = resized;
+        config.darkLogoPath = resized;
+        await config.save();
+        console.log('🎨 Logo redimensionné et optimisé.');
+      }
+    }
+  } catch (error) {
+    console.error('Erreur migration logo:', error.message);
+  }
+}
+
+router.migrateLogo = migrateLogo;
 
 module.exports = router;

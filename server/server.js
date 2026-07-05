@@ -22,6 +22,7 @@ if (MONGODB_URI) {
   mongoose.connect(MONGODB_URI)
     .then(() => {
       console.log('✅ Connecté à MongoDB');
+      configRouter.migrateLogo();
       portfolioRouter.migratePortfolioImages();
     })
     .catch(err => {

@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const Portfolio = require('../models/Portfolio');
 const { adminAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { processImageFile, processBase64Image, getMimeFromExt } = require('../utils/image');
 const { isMongoConnected, readJsonFile, writeJsonFile, generateId } = require('../utils/db');
 const router = express.Router();
 
@@ -139,13 +140,20 @@ router.post('/upload', adminAuth, upload.single('image'), async (req, res) => {
     }
     const filePath = req.file.path;
     const ext = path.extname(req.file.originalname).toLowerCase();
-    let mime = 'image/jpeg';
-    if (ext === '.png') mime = 'image/png';
-    else if (ext === '.gif') mime = 'image/gif';
-    else if (ext === '.svg') mime = 'image/svg+xml';
-    else if (ext === '.webp') mime = 'image/webp';
-    const base64 = fs.readFileSync(filePath).toString('base64');
-    const imagePath = `data:${mime};base64,${base64}`;
+
+    let imagePath;
+    if (ext === '.svg') {
+      const base64 = fs.readFileSync(filePath).toString('base64');
+      imagePath = `data:image/svg+xml;base64,${base64}`;
+    } else {
+      const processed = await processImageFile(filePath, 1200, 1200);
+      if (!processed) {
+        fs.unlinkSync(filePath);
+        return res.status(500).json({ success: false, message: 'Erreur traitement image.' });
+      }
+      imagePath = `data:${processed.mime};base64,${processed.buffer.toString('base64')}`;
+    }
+
     fs.unlinkSync(filePath);
     res.json({ success: true, message: 'Image uploadée.', imagePath });
   } catch (error) {
@@ -201,22 +209,38 @@ router.delete('/:id', adminAuth, async (req, res) => {
 async function migratePortfolioImages() {
   if (!isMongoConnected()) return;
   try {
-    const items = await Portfolio.find({ imagePath: { $regex: '^images/' } });
-    for (const item of items) {
+    // Migrate disk-based images to base64 (legacy)
+    const diskItems = await Portfolio.find({ imagePath: { $regex: '^images/' } });
+    for (const item of diskItems) {
       const filePath = path.join(__dirname, '../../public', item.imagePath);
       if (fs.existsSync(filePath)) {
         const ext = path.extname(filePath).toLowerCase();
-        let mime = 'image/jpeg';
-        if (ext === '.png') mime = 'image/png';
-        else if (ext === '.gif') mime = 'image/gif';
-        else if (ext === '.svg') mime = 'image/svg+xml';
-        else if (ext === '.webp') mime = 'image/webp';
-        const base64 = fs.readFileSync(filePath).toString('base64');
-        item.imagePath = `data:${mime};base64,${base64}`;
+        if (ext === '.svg') {
+          const base64 = fs.readFileSync(filePath).toString('base64');
+          item.imagePath = `data:image/svg+xml;base64,${base64}`;
+        } else {
+          const processed = await processImageFile(filePath, 1200, 1200);
+          if (processed) {
+            item.imagePath = `data:${processed.mime};base64,${processed.buffer.toString('base64')}`;
+          }
+        }
         await item.save();
         console.log('📦 Image portfolio migrée en base64:', item.title);
       } else {
         console.log('⚠️ Fichier image non trouvé pour migration:', item.imagePath);
+      }
+    }
+
+    // Resize huge base64 images already in the database
+    const base64Items = await Portfolio.find({ imagePath: { $regex: '^data:' } });
+    for (const item of base64Items) {
+      if (item.imagePath.length > 500000) {
+        const resized = await processBase64Image(item.imagePath, 1200, 1200);
+        if (resized && resized !== item.imagePath) {
+          item.imagePath = resized;
+          await item.save();
+          console.log('📦 Image portfolio redimensionnée:', item.title);
+        }
       }
     }
   } catch (error) {
