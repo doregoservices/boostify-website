@@ -43,28 +43,28 @@ document.addEventListener('DOMContentLoaded', () => {
     window.revealObserver.observe(el);
   });
 
-  // Load dynamic config
+  // Load dynamic content
   loadConfig();
-
-  // Load testimonials
+  loadServices();
+  loadPacks();
   loadTestimonials();
-
-  // Load portfolio
   loadPortfolio();
 
-  // Pack selection
-  const packButtons = document.querySelectorAll('.select-pack');
+  // Pack selection (event delegation for dynamic packs)
+  const packsGrid = document.getElementById('packsGrid');
   const packSelect = document.getElementById('pack');
 
-  packButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
+  if (packsGrid) {
+    packsGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('.select-pack');
+      if (!btn) return;
       const selectedPack = btn.dataset.pack;
       if (packSelect) {
         packSelect.value = selectedPack;
       }
       document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
     });
-  });
+  }
 
   // Order form submission
   const orderForm = document.getElementById('orderForm');
@@ -213,7 +213,19 @@ async function loadConfig() {
       }
     });
 
-    // Update favicon
+    // Update favicon and social sharing images
+    if (config.logoPath) {
+      const favicon = document.getElementById('favicon');
+      if (favicon) favicon.href = config.logoPath;
+      const appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"]');
+      if (appleTouchIcon) appleTouchIcon.href = config.logoPath;
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      if (ogImage) ogImage.setAttribute('content', config.logoPath);
+      const twitterImage = document.querySelector('meta[property="twitter:image"]');
+      if (twitterImage) twitterImage.setAttribute('content', config.logoPath);
+    }
+
+    // Update favicon (legacy field)
     const favicon = document.getElementById('favicon');
     if (favicon && config.faviconPath) {
       favicon.href = config.faviconPath;
@@ -264,12 +276,18 @@ async function loadConfig() {
       if (footerSiteName) footerSiteName.textContent = config.siteName;
     }
 
-    if (config.slogan || config.footerText) {
+    if (config.slogan) {
       const sloganEl = document.getElementById('sloganText');
       if (sloganEl) {
-        const text = config.footerText || config.slogan;
-        sloganEl.textContent = text;
-        sloganEl.setAttribute('data-fr', text);
+        sloganEl.textContent = config.slogan;
+        sloganEl.setAttribute('data-fr', config.slogan);
+      }
+    }
+
+    if (config.footerText) {
+      const footerTextEl = document.getElementById('footerText');
+      if (footerTextEl) {
+        footerTextEl.textContent = config.footerText;
       }
     }
 
@@ -398,6 +416,83 @@ async function loadPortfolio() {
   } catch (error) {
     console.error('Erreur chargement portfolio:', error);
     // Keep default static portfolio on error
+  }
+}
+
+// Load services (replaces static if server returns data)
+async function loadServices() {
+  const grid = document.getElementById('servicesGrid');
+  if (!grid) return;
+
+  try {
+    const response = await fetch(`/api/services?_t=${Date.now()}`);
+    const result = await response.json();
+
+    if (!result.success || !result.services || result.services.length === 0) {
+      return;
+    }
+
+    const cards = result.services.map(s => {
+      const title = currentLang === 'en' && s.titleEn ? s.titleEn : s.title;
+      const description = currentLang === 'en' && s.descriptionEn ? s.descriptionEn : s.description;
+      return `
+        <div class="service-card reveal">
+          <div class="service-icon">${escapeHtml(s.icon || '')}</div>
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(description)}</p>
+        </div>
+      `;
+    }).join('');
+
+    grid.innerHTML = cards;
+    grid.querySelectorAll('.reveal').forEach(el => window.revealObserver.observe(el));
+  } catch (error) {
+    console.error('Erreur chargement services:', error);
+  }
+}
+
+// Load packs (replaces static if server returns data)
+async function loadPacks() {
+  const grid = document.getElementById('packsGrid');
+  const packSelect = document.getElementById('pack');
+  if (!grid) return;
+
+  try {
+    const response = await fetch(`/api/packs?_t=${Date.now()}`);
+    const result = await response.json();
+
+    if (!result.success || !result.packs || result.packs.length === 0) {
+      return;
+    }
+
+    const packs = result.packs.map(p => {
+      const name = currentLang === 'en' && p.nameEn ? p.nameEn : p.name;
+      const features = currentLang === 'en' && p.featuresEn ? p.featuresEn : p.features;
+      const badge = p.popular
+        ? `<div class="pack-badge popular" data-fr="Le plus populaire" data-en="Most popular">Le plus populaire</div>`
+        : `<div class="pack-badge" data-fr="Pack" data-en="Pack">Pack</div>`;
+      const featuresList = (features || []).map(f => `<li>${escapeHtml(f)}</li>`).join('');
+      return `
+        <div class="pack-card ${p.popular ? 'featured' : ''} reveal">
+          ${badge}
+          <h3>${escapeHtml(name)}</h3>
+          <div class="pack-price">${escapeHtml(p.price)}</div>
+          <ul>${featuresList}</ul>
+          <button class="btn btn-primary select-pack" data-pack="${escapeHtml(p.name)}" data-fr="Choisir ce pack" data-en="Choose this pack">Choisir ce pack</button>
+        </div>
+      `;
+    }).join('');
+
+    grid.innerHTML = packs;
+    grid.querySelectorAll('.reveal').forEach(el => window.revealObserver.observe(el));
+
+    // Update pack select options
+    if (packSelect) {
+      packSelect.innerHTML = '<option value="" data-fr="Sélectionnez..." data-en="Select...">Sélectionnez...</option>' +
+        result.packs.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} — ${escapeHtml(p.price)}</option>`).join('');
+    }
+  } catch (error) {
+    console.error('Erreur chargement packs:', error);
   }
 }
 

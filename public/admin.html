@@ -103,6 +103,8 @@
       </div>
       <div class="nav-tabs">
         <button class="nav-tab active" onclick="showPanel('orders')">📦 Commandes</button>
+        <button class="nav-tab" onclick="showPanel('services')">🛠️ Services</button>
+        <button class="nav-tab" onclick="showPanel('packs')">📦 Packs</button>
         <button class="nav-tab" onclick="showPanel('portfolio')">🖼️ Portfolio</button>
         <button class="nav-tab" onclick="showPanel('testimonials')">💬 Avis clients</button>
         <button class="nav-tab" onclick="showPanel('config')">⚙️ Configuration</button>
@@ -159,6 +161,129 @@
             <tr><td colspan="7" class="empty">Chargement...</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Services Panel -->
+    <div class="panel" id="servicesPanel">
+      <h2>Gestion des services</h2>
+      <div class="alert" id="servicesAlert"></div>
+
+      <div class="section-divider" style="margin-top:0; border-top:none;">
+        <h3>➕ Ajouter un service</h3>
+        <form id="serviceForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Icône (emoji)</label>
+              <input type="text" id="svcIcon" placeholder="Ex: 🎨" value="🎨">
+            </div>
+            <div class="form-group">
+              <label>Titre (Français)</label>
+              <input type="text" id="svcTitle" required placeholder="Ex: Création graphique">
+            </div>
+            <div class="form-group">
+              <label>Titre (Anglais)</label>
+              <input type="text" id="svcTitleEn" placeholder="Ex: Graphic design">
+            </div>
+            <div class="form-group">
+              <label>Ordre</label>
+              <input type="number" id="svcOrder" value="0" min="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description (Français)</label>
+            <textarea id="svcDescription" rows="3" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Description (Anglais)</label>
+            <textarea id="svcDescriptionEn" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Ajouter le service</button>
+        </form>
+      </div>
+
+      <div class="section-divider">
+        <h3>🛠️ Services actuels</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Icône</th>
+                <th>Titre</th>
+                <th>Description</th>
+                <th>Ordre</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="servicesBody">
+              <tr><td colspan="5" class="empty">Chargement...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Packs Panel -->
+    <div class="panel" id="packsPanel">
+      <h2>Gestion des packs</h2>
+      <div class="alert" id="packsAlert"></div>
+
+      <div class="section-divider" style="margin-top:0; border-top:none;">
+        <h3>➕ Ajouter un pack</h3>
+        <form id="packForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nom (Français)</label>
+              <input type="text" id="packName" required placeholder="Ex: Pack Starter">
+            </div>
+            <div class="form-group">
+              <label>Nom (Anglais)</label>
+              <input type="text" id="packNameEn" placeholder="Ex: Starter Pack">
+            </div>
+            <div class="form-group">
+              <label>Prix</label>
+              <input type="text" id="packPrice" required placeholder="Ex: 15 000 FCFA">
+            </div>
+            <div class="form-group">
+              <label>Ordre</label>
+              <input type="number" id="packOrder" value="0" min="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Fonctionnalités (une par ligne)</label>
+            <textarea id="packFeatures" rows="5" required placeholder="1 logo professionnel&#10;Carte de visite&#10;Visuel Facebook"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Fonctionnalités anglais (une par ligne)</label>
+            <textarea id="packFeaturesEn" rows="5" placeholder="1 professional logo&#10;Business card&#10;Facebook visual"></textarea>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="packPopular"> Pack le plus populaire
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary">Ajouter le pack</button>
+        </form>
+      </div>
+
+      <div class="section-divider">
+        <h3>📦 Packs actuels</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Prix</th>
+                <th>Fonctionnalités</th>
+                <th>Populaire</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="packsBody">
+              <tr><td colspan="5" class="empty">Chargement...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -426,6 +551,8 @@
       document.getElementById(panelName + 'Panel').classList.add('active');
       event.target.classList.add('active');
       if (panelName === 'orders') loadOrders();
+      if (panelName === 'services') loadServicesAdmin();
+      if (panelName === 'packs') loadPacksAdmin();
       if (panelName === 'portfolio') loadPortfolioAdmin();
       if (panelName === 'testimonials') loadTestimonials();
       if (panelName === 'config') loadConfig();
@@ -814,6 +941,158 @@
         loadPortfolioAdmin();
       } catch (err) {
         showAlert('portfolioAlert', 'Erreur: ' + err.message, 'error');
+      }
+    }
+
+    async function loadServicesAdmin() {
+      try {
+        const res = await fetch('/api/services/all', {
+          headers: { 'x-admin-password': adminPassword }
+        });
+        const data = await res.json();
+        renderServicesAdmin(data.services || []);
+      } catch (err) {
+        document.getElementById('servicesBody').innerHTML = `<tr><td colspan="5" class="empty">Erreur: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderServicesAdmin(services) {
+      const tbody = document.getElementById('servicesBody');
+      if (services.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">Aucun service pour le moment.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = services.map(s => `
+        <tr>
+          <td style="font-size:1.5rem;">${escapeHtml(s.icon || '')}</td>
+          <td><strong>${escapeHtml(s.title)}</strong><br><small style="color:#888;">${escapeHtml(s.titleEn || '')}</small></td>
+          <td class="message-preview">${escapeHtml(s.description)}</td>
+          <td>${s.order || 0}</td>
+          <td>
+            <button class="btn btn-small btn-danger" onclick="deleteService('${s._id}')">Supprimer</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('serviceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        icon: document.getElementById('svcIcon').value,
+        title: document.getElementById('svcTitle').value,
+        titleEn: document.getElementById('svcTitleEn').value,
+        description: document.getElementById('svcDescription').value,
+        descriptionEn: document.getElementById('svcDescriptionEn').value,
+        order: document.getElementById('svcOrder').value
+      };
+      try {
+        const res = await fetch('/api/services', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          showAlert('servicesAlert', 'Service ajouté avec succès !', 'success');
+          document.getElementById('serviceForm').reset();
+          loadServicesAdmin();
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (err) {
+        showAlert('servicesAlert', 'Erreur: ' + err.message, 'error');
+      }
+    });
+
+    async function deleteService(id) {
+      if (!confirm('Supprimer ce service ?')) return;
+      try {
+        await fetch(`/api/services/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-password': adminPassword }
+        });
+        loadServicesAdmin();
+      } catch (err) {
+        showAlert('servicesAlert', 'Erreur: ' + err.message, 'error');
+      }
+    }
+
+    async function loadPacksAdmin() {
+      try {
+        const res = await fetch('/api/packs/all', {
+          headers: { 'x-admin-password': adminPassword }
+        });
+        const data = await res.json();
+        renderPacksAdmin(data.packs || []);
+      } catch (err) {
+        document.getElementById('packsBody').innerHTML = `<tr><td colspan="5" class="empty">Erreur: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderPacksAdmin(packs) {
+      const tbody = document.getElementById('packsBody');
+      if (packs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">Aucun pack pour le moment.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = packs.map(p => {
+        const features = (p.features || []).join(', ');
+        return `
+          <tr>
+            <td><strong>${escapeHtml(p.name)}</strong><br><small style="color:#888;">${escapeHtml(p.nameEn || '')}</small></td>
+            <td>${escapeHtml(p.price)}</td>
+            <td class="message-preview">${escapeHtml(features)}</td>
+            <td>${p.popular ? '⭐' : '-'}</td>
+            <td>
+              <button class="btn btn-small btn-danger" onclick="deletePack('${p._id}')">Supprimer</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('packForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const features = document.getElementById('packFeatures').value.split('\n').filter(f => f.trim());
+      const featuresEn = document.getElementById('packFeaturesEn').value.split('\n').filter(f => f.trim());
+      const data = {
+        name: document.getElementById('packName').value,
+        nameEn: document.getElementById('packNameEn').value,
+        price: document.getElementById('packPrice').value,
+        features: features,
+        featuresEn: featuresEn,
+        popular: document.getElementById('packPopular').checked,
+        order: document.getElementById('packOrder').value
+      };
+      try {
+        const res = await fetch('/api/packs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          showAlert('packsAlert', 'Pack ajouté avec succès !', 'success');
+          document.getElementById('packForm').reset();
+          loadPacksAdmin();
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (err) {
+        showAlert('packsAlert', 'Erreur: ' + err.message, 'error');
+      }
+    });
+
+    async function deletePack(id) {
+      if (!confirm('Supprimer ce pack ?')) return;
+      try {
+        await fetch(`/api/packs/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-password': adminPassword }
+        });
+        loadPacksAdmin();
+      } catch (err) {
+        showAlert('packsAlert', 'Erreur: ' + err.message, 'error');
       }
     }
 

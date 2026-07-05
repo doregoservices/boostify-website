@@ -11,6 +11,8 @@ const configRouter = require('./routes/config');
 const testimonialsRouter = require('./routes/testimonials');
 const authRouter = require('./routes/auth');
 const portfolioRouter = require('./routes/portfolio');
+const servicesRouter = require('./routes/services');
+const packsRouter = require('./routes/packs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +50,8 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/config', configRouter);
 app.use('/api/testimonials', testimonialsRouter);
 app.use('/api/portfolio', portfolioRouter);
+app.use('/api/services', servicesRouter);
+app.use('/api/packs', packsRouter);
 
 // Admin dashboard route
 app.get('/admin', (req, res) => {
