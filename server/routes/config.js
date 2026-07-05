@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const Config = require('../models/Config');
 const { adminAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -95,8 +97,17 @@ router.post('/upload-logo', adminAuth, upload.single('logo'), async (req, res) =
       return res.status(400).json({ success: false, message: 'Aucun fichier uploadé.' });
     }
 
-    const logoPath = `images/${req.file.filename}`;
+    const filePath = req.file.path;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let mime = 'image/jpeg';
+    if (ext === '.png') mime = 'image/png';
+    else if (ext === '.gif') mime = 'image/gif';
+    else if (ext === '.svg') mime = 'image/svg+xml';
+    else if (ext === '.webp') mime = 'image/webp';
+    const base64 = fs.readFileSync(filePath).toString('base64');
+    const logoPath = `data:${mime};base64,${base64}`;
     const config = await saveConfig({ logoPath, darkLogoPath: logoPath });
+    fs.unlinkSync(filePath);
 
     res.json({ success: true, message: 'Logo uploadé avec succès.', logoPath, config });
   } catch (error) {
