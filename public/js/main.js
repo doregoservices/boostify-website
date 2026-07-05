@@ -269,6 +269,39 @@ async function loadConfig() {
       if (locationEl) locationEl.textContent = config.location;
     }
 
+    // Update website link
+    if (config.website) {
+      const websiteLink = document.getElementById('websiteLink');
+      const websiteText = document.getElementById('websiteText');
+      if (websiteLink) {
+        websiteLink.href = config.website.startsWith('http') ? config.website : `https://${config.website}`;
+        websiteLink.style.display = 'flex';
+      }
+      if (websiteText) websiteText.textContent = config.website.replace(/^https?:\/\//, '');
+    } else {
+      const websiteLink = document.getElementById('websiteLink');
+      if (websiteLink) websiteLink.style.display = 'none';
+    }
+
+    // Update hero title
+    if (config.heroTitle) {
+      const heroTitleMain = document.getElementById('heroTitleMain');
+      const heroTitleAccent = document.getElementById('heroTitleAccent');
+      if (heroTitleMain) {
+        heroTitleMain.textContent = config.heroTitle;
+        heroTitleMain.setAttribute('data-fr', config.heroTitle);
+      }
+      if (heroTitleAccent) {
+        if (config.heroSubtitle) {
+          heroTitleAccent.textContent = config.heroSubtitle;
+          heroTitleAccent.setAttribute('data-fr', config.heroSubtitle);
+          heroTitleAccent.style.display = 'inline';
+        } else {
+          heroTitleAccent.style.display = 'none';
+        }
+      }
+    }
+
     // Update site name and slogan
     if (config.siteName) {
       document.title = config.siteName;

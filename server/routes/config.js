@@ -31,6 +31,8 @@ const defaultConfig = {
   footerText: "Votre identité visuelle, notre mission.",
   metaDescription: 'Agence de branding et infographie.',
   metaKeywords: 'infographie, branding, logo, flyer, réseaux sociaux',
+  heroTitle: "L'Alpha du Branding",
+  heroSubtitle: '',
   updatedAt: new Date().toISOString()
 };
 
@@ -47,7 +49,7 @@ async function saveConfig(updates) {
     const allowedFields = [
       'siteName', 'slogan', 'founderName', 'role', 'email', 'phone',
       'whatsapp', 'location', 'website', 'logoPath', 'darkLogoPath',
-      'faviconPath', 'primaryColor', 'darkColor', 'description', 'aboutTitle', 'aboutText', 'footerText', 'metaDescription', 'metaKeywords'
+      'faviconPath', 'primaryColor', 'darkColor', 'description', 'aboutTitle', 'aboutText', 'footerText', 'metaDescription', 'metaKeywords', 'heroTitle', 'heroSubtitle'
     ];
     allowedFields.forEach(field => {
       if (updates[field] !== undefined) {
@@ -62,7 +64,7 @@ async function saveConfig(updates) {
     const allowedFields = [
       'siteName', 'slogan', 'founderName', 'role', 'email', 'phone',
       'whatsapp', 'location', 'website', 'logoPath', 'darkLogoPath',
-      'faviconPath', 'primaryColor', 'darkColor', 'description', 'aboutTitle', 'aboutText', 'footerText', 'metaDescription', 'metaKeywords'
+      'faviconPath', 'primaryColor', 'darkColor', 'description', 'aboutTitle', 'aboutText', 'footerText', 'metaDescription', 'metaKeywords', 'heroTitle', 'heroSubtitle'
     ];
     allowedFields.forEach(field => {
       if (updates[field] !== undefined) {

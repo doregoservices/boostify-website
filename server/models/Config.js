@@ -81,6 +81,14 @@ const configSchema = new mongoose.Schema({
     type: String,
     default: 'infographie, branding, logo, flyer, réseaux sociaux'
   },
+  heroTitle: {
+    type: String,
+    default: "L'Alpha du Branding"
+  },
+  heroSubtitle: {
+    type: String,
+    default: ''
+  },
   updatedAt: {
     type: Date,
     default: Date.now
