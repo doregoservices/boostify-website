@@ -257,6 +257,19 @@ async function loadConfig() {
       if (locationEl) locationEl.textContent = config.location;
     }
 
+    // Update site name and slogan
+    if (config.siteName) {
+      document.title = config.siteName;
+    }
+
+    if (config.slogan) {
+      const sloganEl = document.getElementById('sloganText');
+      if (sloganEl) {
+        sloganEl.textContent = config.slogan;
+        sloganEl.setAttribute('data-fr', config.slogan);
+      }
+    }
+
   } catch (error) {
     console.error('Erreur chargement config:', error);
   }
