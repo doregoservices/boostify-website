@@ -57,6 +57,30 @@ const configSchema = new mongoose.Schema({
     type: String,
     default: '#111111'
   },
+  description: {
+    type: String,
+    default: 'Donne vie à votre identité visuelle. Logos, affiches, réseaux sociaux, impressions, sites web.'
+  },
+  aboutTitle: {
+    type: String,
+    default: "Donner du pouvoir à chaque marque"
+  },
+  aboutText: {
+    type: String,
+    default: "Je suis le fondateur de cette agence. Je conçois des identités visuelles impactantes et des supports de communication modernes pour entrepreneurs, entreprises et particuliers."
+  },
+  footerText: {
+    type: String,
+    default: "Votre identité visuelle, notre mission."
+  },
+  metaDescription: {
+    type: String,
+    default: 'Agence de branding et infographie.'
+  },
+  metaKeywords: {
+    type: String,
+    default: 'infographie, branding, logo, flyer, réseaux sociaux'
+  },
   updatedAt: {
     type: Date,
     default: Date.now

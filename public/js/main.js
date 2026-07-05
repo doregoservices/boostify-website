@@ -260,14 +260,55 @@ async function loadConfig() {
     // Update site name and slogan
     if (config.siteName) {
       document.title = config.siteName;
+      const footerSiteName = document.getElementById('footerSiteName');
+      if (footerSiteName) footerSiteName.textContent = config.siteName;
     }
 
-    if (config.slogan) {
+    if (config.slogan || config.footerText) {
       const sloganEl = document.getElementById('sloganText');
       if (sloganEl) {
-        sloganEl.textContent = config.slogan;
-        sloganEl.setAttribute('data-fr', config.slogan);
+        const text = config.footerText || config.slogan;
+        sloganEl.textContent = text;
+        sloganEl.setAttribute('data-fr', text);
       }
+    }
+
+    if (config.description) {
+      const heroDesc = document.getElementById('heroDescription');
+      if (heroDesc) {
+        heroDesc.textContent = config.description;
+        heroDesc.setAttribute('data-fr', config.description);
+      }
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute('content', config.description);
+    }
+
+    if (config.aboutTitle) {
+      const aboutTitle = document.getElementById('aboutTitle');
+      if (aboutTitle) {
+        aboutTitle.textContent = config.aboutTitle;
+        aboutTitle.setAttribute('data-fr', config.aboutTitle);
+      }
+    }
+
+    if (config.aboutText) {
+      const aboutText = document.getElementById('aboutText');
+      if (aboutText) {
+        aboutText.textContent = config.aboutText;
+        aboutText.setAttribute('data-fr', config.aboutText);
+      }
+    }
+
+    if (config.metaKeywords) {
+      const metaKeywords = document.querySelector('meta[name="keywords"]');
+      if (metaKeywords) metaKeywords.setAttribute('content', config.metaKeywords);
+    }
+
+    if (config.primaryColor) {
+      document.documentElement.style.setProperty('--orange', config.primaryColor);
+    }
+    if (config.darkColor) {
+      document.documentElement.style.setProperty('--black', config.darkColor);
     }
 
   } catch (error) {

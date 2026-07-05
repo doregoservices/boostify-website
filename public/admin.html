@@ -307,6 +307,34 @@
             <label>Couleur principale</label>
             <input type="color" name="primaryColor" id="cfgPrimaryColor" style="height:44px; padding:4px;">
           </div>
+          <div class="form-group">
+            <label>Couleur sombre</label>
+            <input type="color" name="darkColor" id="cfgDarkColor" style="height:44px; padding:4px;">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Description du site (accueil + SEO)</label>
+            <textarea name="description" id="cfgDescription" rows="2"></textarea>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Titre de la section À propos</label>
+            <input type="text" name="aboutTitle" id="cfgAboutTitle">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Texte de la section À propos</label>
+            <textarea name="aboutText" id="cfgAboutText" rows="4"></textarea>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Texte du footer</label>
+            <textarea name="footerText" id="cfgFooterText" rows="2"></textarea>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Description SEO (meta description)</label>
+            <textarea name="metaDescription" id="cfgMetaDescription" rows="2"></textarea>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Mots-clés SEO (meta keywords)</label>
+            <input type="text" name="metaKeywords" id="cfgMetaKeywords">
+          </div>
         </div>
         <button type="submit" class="btn btn-primary">💾 Enregistrer la configuration</button>
       </form>
@@ -582,6 +610,13 @@
         document.getElementById('cfgLogoPath').value = config.logoPath || '';
         document.getElementById('cfgFaviconPath').value = config.faviconPath || '';
         document.getElementById('cfgPrimaryColor').value = config.primaryColor || '#F5A623';
+        document.getElementById('cfgDarkColor').value = config.darkColor || '#111111';
+        document.getElementById('cfgDescription').value = config.description || '';
+        document.getElementById('cfgAboutTitle').value = config.aboutTitle || '';
+        document.getElementById('cfgAboutText').value = config.aboutText || '';
+        document.getElementById('cfgFooterText').value = config.footerText || '';
+        document.getElementById('cfgMetaDescription').value = config.metaDescription || '';
+        document.getElementById('cfgMetaKeywords').value = config.metaKeywords || '';
         document.getElementById('cfgLogoPreview').src = config.logoPath || '';
       } catch (err) {
         showAlert('configAlert', 'Erreur de chargement de la config.', 'error');

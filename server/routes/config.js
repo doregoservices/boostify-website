@@ -25,6 +25,12 @@ const defaultConfig = {
   faviconPath: 'favicon.svg',
   primaryColor: '#F5A623',
   darkColor: '#111111',
+  description: 'Donne vie à votre identité visuelle. Logos, affiches, réseaux sociaux, impressions, sites web.',
+  aboutTitle: "Donner du pouvoir à chaque marque",
+  aboutText: "Je suis le fondateur de cette agence. Je conçois des identités visuelles impactantes et des supports de communication modernes pour entrepreneurs, entreprises et particuliers.",
+  footerText: "Votre identité visuelle, notre mission.",
+  metaDescription: 'Agence de branding et infographie.',
+  metaKeywords: 'infographie, branding, logo, flyer, réseaux sociaux',
   updatedAt: new Date().toISOString()
 };
 
@@ -41,7 +47,7 @@ async function saveConfig(updates) {
     const allowedFields = [
       'siteName', 'slogan', 'founderName', 'role', 'email', 'phone',
       'whatsapp', 'location', 'website', 'logoPath', 'darkLogoPath',
-      'faviconPath', 'primaryColor', 'darkColor'
+      'faviconPath', 'primaryColor', 'darkColor', 'description', 'aboutTitle', 'aboutText', 'footerText', 'metaDescription', 'metaKeywords'
     ];
     allowedFields.forEach(field => {
       if (updates[field] !== undefined) {
@@ -56,7 +62,7 @@ async function saveConfig(updates) {
     const allowedFields = [
       'siteName', 'slogan', 'founderName', 'role', 'email', 'phone',
       'whatsapp', 'location', 'website', 'logoPath', 'darkLogoPath',
-      'faviconPath', 'primaryColor', 'darkColor'
+      'faviconPath', 'primaryColor', 'darkColor', 'description', 'aboutTitle', 'aboutText', 'footerText', 'metaDescription', 'metaKeywords'
     ];
     allowedFields.forEach(field => {
       if (updates[field] !== undefined) {
