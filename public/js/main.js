@@ -246,14 +246,21 @@ async function loadConfig() {
 
     // Update contact info
     if (config.email) {
-      updateContactLink('mailto:', config.email, config.email);
+      updateContactItem('aboutEmail', 'mailto:', config.email, config.email);
+      updateContactItem('contactEmail', 'mailto:', config.email, config.email);
+      updateContactItem('footerEmail', 'mailto:', config.email, config.email);
     }
     if (config.phone) {
-      updateContactLink('tel:', config.phone.replace(/\s/g, ''), config.phone);
+      const cleanPhone = config.phone.replace(/\s/g, '');
+      updateContactItem('aboutPhone', 'tel:', cleanPhone, config.phone);
+      updateContactItem('contactPhone', 'tel:', cleanPhone, config.phone);
+      updateContactItem('footerPhone', 'tel:', cleanPhone, config.phone);
     }
     if (config.whatsapp) {
       const cleanWhatsapp = config.whatsapp.replace(/[\s+]/g, '');
-      updateContactLink('https://wa.me/', cleanWhatsapp, `WhatsApp : ${config.whatsapp}`);
+      updateContactItem('aboutWhatsapp', 'https://wa.me/', cleanWhatsapp, `WhatsApp : ${config.whatsapp}`);
+      updateContactItem('contactWhatsapp', 'https://wa.me/', cleanWhatsapp, `WhatsApp : ${config.whatsapp}`);
+      updateContactItem('footerWhatsapp', 'https://wa.me/', cleanWhatsapp, 'WhatsApp');
 
       // Update WhatsApp float button
       const whatsappFloat = document.getElementById('whatsappFloat');
@@ -265,8 +272,7 @@ async function loadConfig() {
       }
     }
     if (config.location) {
-      const locationEl = document.querySelector('.info-item:last-child span:last-child');
-      if (locationEl) locationEl.textContent = config.location;
+      updateContactItem('contactLocation', null, null, config.location, false);
     }
 
     // Update website link
@@ -367,16 +373,17 @@ async function loadConfig() {
   }
 }
 
-function updateContactLink(prefix, value, displayText) {
-  const links = document.querySelectorAll(`a[href^="${prefix}"]`);
-  links.forEach(link => {
-    link.href = `${prefix}${value}`;
-    const span = link.querySelector('span:last-child');
-    if (span) span.textContent = displayText;
-  });
+function updateContactItem(id, prefix, value, displayText, isLink = true) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (isLink && prefix !== null && value !== null) {
+    el.href = `${prefix}${value}`;
+  }
+  const textSpan = el.querySelector('.contact-text') || el.querySelector('span:last-child');
+  if (textSpan) textSpan.textContent = displayText;
 }
 
-// Load testimonials (appends server-approved testimonials to existing static ones)
+// Load testimonials (replaces static content with server-approved testimonials)
 async function loadTestimonials() {
   const grid = document.getElementById('testimonialsGrid');
   if (!grid) return;
@@ -386,7 +393,7 @@ async function loadTestimonials() {
     const result = await response.json();
 
     if (!result.success || !result.testimonials || result.testimonials.length === 0) {
-      // Keep default static testimonials
+      grid.innerHTML = `<div class="empty" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;">Aucun avis pour le moment.</div>`;
       return;
     }
 
@@ -409,15 +416,14 @@ async function loadTestimonials() {
       `;
     }).join('');
 
-    grid.insertAdjacentHTML('beforeend', cards);
+    grid.innerHTML = cards;
     grid.querySelectorAll('.reveal').forEach(el => window.revealObserver.observe(el));
   } catch (error) {
     console.error('Erreur chargement témoignages:', error);
-    // Keep default static testimonials on error
   }
 }
 
-// Load portfolio (appends server portfolio items to existing static ones)
+// Load portfolio (replaces static content with server portfolio items)
 async function loadPortfolio() {
   const grid = document.getElementById('portfolioGrid');
   if (!grid) return;
@@ -427,7 +433,7 @@ async function loadPortfolio() {
     const result = await response.json();
 
     if (!result.success || !result.items || result.items.length === 0) {
-      // Keep default static portfolio
+      grid.innerHTML = `<div class="empty" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;">Aucune réalisation pour le moment.</div>`;
       return;
     }
 
@@ -444,11 +450,10 @@ async function loadPortfolio() {
       `;
     }).join('');
 
-    grid.insertAdjacentHTML('beforeend', items);
+    grid.innerHTML = items;
     grid.querySelectorAll('.reveal').forEach(el => window.revealObserver.observe(el));
   } catch (error) {
     console.error('Erreur chargement portfolio:', error);
-    // Keep default static portfolio on error
   }
 }
 
@@ -462,6 +467,7 @@ async function loadServices() {
     const result = await response.json();
 
     if (!result.success || !result.services || result.services.length === 0) {
+      grid.innerHTML = `<div class="empty" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;">Aucun service pour le moment.</div>`;
       return;
     }
 
@@ -495,6 +501,11 @@ async function loadPacks() {
     const result = await response.json();
 
     if (!result.success || !result.packs || result.packs.length === 0) {
+      grid.innerHTML = `<div class="empty" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;">Aucun pack pour le moment.</div>`;
+      if (packSelect) {
+        packSelect.innerHTML = '<option value="" data-fr="Sélectionnez..." data-en="Select...">Sélectionnez...</option>' +
+          '<option value="Autre" data-fr="Autre (précisez ci-dessous)" data-en="Other (specify below)">Autre (précisez ci-dessous)</option>';
+      }
       return;
     }
 
@@ -522,7 +533,8 @@ async function loadPacks() {
     // Update pack select options
     if (packSelect) {
       packSelect.innerHTML = '<option value="" data-fr="Sélectionnez..." data-en="Select...">Sélectionnez...</option>' +
-        result.packs.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} — ${escapeHtml(p.price)}</option>`).join('');
+        result.packs.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} — ${escapeHtml(p.price)}</option>`).join('') +
+        '<option value="Autre" data-fr="Autre (précisez ci-dessous)" data-en="Other (specify below)">Autre (précisez ci-dessous)</option>';
     }
   } catch (error) {
     console.error('Erreur chargement packs:', error);

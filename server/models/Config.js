@@ -19,23 +19,23 @@ const configSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    default: 'bellosuaibou@7gmail.com'
+    default: 'boostifygraphics@gmail.com'
   },
   phone: {
     type: String,
-    default: '+229 66 01 43 36'
+    default: '+225 01 61 49 85 23'
   },
   whatsapp: {
     type: String,
-    default: '+225 01 61 49 85 23'
+    default: '+225 05 96 19 56 39'
   },
   location: {
     type: String,
-    default: 'Conzagüe Ville'
+    default: 'Cocody, Abidjan'
   },
   website: {
     type: String,
-    default: 'https://www.Boostify.com'
+    default: 'https://boostify-website.onrender.com'
   },
   logoPath: {
     type: String,
@@ -59,7 +59,7 @@ const configSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    default: 'Donne vie à votre identité visuelle. Logos, affiches, réseaux sociaux, impressions, sites web.'
+    default: 'Boostify donne vie à votre identité visuelle. Logos, affiches, réseaux sociaux, impressions, sites web — tout ce dont votre marque a besoin pour briller.'
   },
   aboutTitle: {
     type: String,
@@ -67,7 +67,7 @@ const configSchema = new mongoose.Schema({
   },
   aboutText: {
     type: String,
-    default: "Je suis le fondateur de cette agence. Je conçois des identités visuelles impactantes et des supports de communication modernes pour entrepreneurs, entreprises et particuliers."
+    default: "Je suis Bello Shouaïb, fondateur de Boostify. Je conçois des identités visuelles impactantes et des supports de communication modernes pour entrepreneurs, entreprises et particuliers. Mon objectif : transformer vos idées en designs mémorables qui boostent votre image."
   },
   footerText: {
     type: String,
@@ -75,11 +75,11 @@ const configSchema = new mongoose.Schema({
   },
   metaDescription: {
     type: String,
-    default: 'Agence de branding et infographie.'
+    default: 'Boostify, agence de branding et infographie en Côte d\'Ivoire. Création de logos, flyers, réseaux sociaux, sites web et impression.'
   },
   metaKeywords: {
     type: String,
-    default: 'infographie, branding, logo, flyer, réseaux sociaux'
+    default: 'infographie, branding, logo, flyer, réseaux sociaux, Côte d\'Ivoire, Abidjan, Boostify, Bello Shouaïb'
   },
   heroTitle: {
     type: String,

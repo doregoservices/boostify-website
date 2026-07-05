@@ -162,6 +162,38 @@ router.post('/upload', adminAuth, upload.single('image'), async (req, res) => {
   }
 });
 
+// PATCH /api/portfolio/:id - Update item (admin)
+router.patch('/:id', adminAuth, async (req, res) => {
+  try {
+    const { title, titleEn, imagePath, category, order, active } = req.body;
+    const updates = {};
+    if (title !== undefined) updates.title = title.trim();
+    if (titleEn !== undefined) updates.titleEn = titleEn.trim();
+    if (imagePath !== undefined) updates.imagePath = imagePath.trim();
+    if (category !== undefined) updates.category = category.trim();
+    if (order !== undefined) updates.order = parseInt(order) || 0;
+    if (active !== undefined) updates.active = active;
+
+    let item;
+    if (isMongoConnected()) {
+      item = await Portfolio.findByIdAndUpdate(req.params.id, updates, { new: true });
+    } else {
+      const items = readJsonFile(PORTFOLIO_FILE, defaultPortfolio);
+      const index = items.findIndex(i => i._id === req.params.id);
+      if (index !== -1) {
+        items[index] = { ...items[index], ...updates };
+        writeJsonFile(PORTFOLIO_FILE, items);
+        item = items[index];
+      }
+    }
+    if (!item) return res.status(404).json({ success: false, message: 'Projet non trouvé.' });
+    res.json({ success: true, message: 'Projet mis à jour.', item });
+  } catch (error) {
+    console.error('Erreur mise à jour portfolio:', error);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 // PATCH /api/portfolio/:id/toggle - Toggle active (admin)
 router.patch('/:id/toggle', adminAuth, async (req, res) => {
   try {

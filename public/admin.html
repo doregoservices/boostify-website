@@ -491,6 +491,9 @@
 
   <script>
     let adminPassword = localStorage.getItem('boostify-admin-password') || '';
+    let editingServiceId = null;
+    let editingPackId = null;
+    let editingPortfolioId = null;
 
     if (adminPassword) {
       showAdmin();
@@ -854,6 +857,7 @@
             <td>${item.order}</td>
             <td>${status}</td>
             <td>
+              <button class="btn btn-success" onclick="editPortfolio('${item._id}')">Modifier</button>
               <button class="btn btn-success" onclick="togglePortfolio('${item._id}')">${item.active ? 'Masquer' : 'Afficher'}</button>
               <button class="btn btn-danger" onclick="deletePortfolio('${item._id}')">Supprimer</button>
             </td>
@@ -909,17 +913,17 @@
       };
 
       try {
-        const res = await fetch('/api/portfolio', {
-          method: 'POST',
+        const url = editingPortfolioId ? `/api/portfolio/${editingPortfolioId}` : '/api/portfolio';
+        const method = editingPortfolioId ? 'PATCH' : 'POST';
+        const res = await fetch(url, {
+          method: method,
           headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
           body: JSON.stringify(data)
         });
         const result = await res.json();
         if (result.success) {
-          showAlert('portfolioAlert', 'Projet ajouté avec succès !', 'success');
-          document.getElementById('portfolioForm').reset();
-          document.getElementById('pfPreview').style.display = 'none';
-          document.getElementById('pfImagePath').value = '';
+          showAlert('portfolioAlert', editingPortfolioId ? 'Projet mis à jour !' : 'Projet ajouté avec succès !', 'success');
+          resetPortfolioForm();
           loadPortfolioAdmin();
         } else {
           throw new Error(result.message);
@@ -929,7 +933,33 @@
       }
     });
 
+    async function editPortfolio(id) {
+      try {
+        const res = await fetch('/api/portfolio/all', {
+          headers: { 'x-admin-password': adminPassword }
+        });
+        const data = await res.json();
+        const item = (data.items || []).find(i => i._id === id);
+        if (!item) throw new Error('Projet non trouvé');
+        document.getElementById('pfTitleFr').value = item.title || '';
+        document.getElementById('pfTitleEn').value = item.titleEn || '';
+        document.getElementById('pfCategory').value = item.category || 'autre';
+        document.getElementById('pfOrder').value = item.order || 0;
+        document.getElementById('pfImagePath').value = item.imagePath || '';
+        const preview = document.getElementById('pfPreview');
+        preview.src = item.imagePath || '';
+        preview.style.display = 'block';
+        editingPortfolioId = id;
+        const btn = document.querySelector('#portfolioForm button[type="submit"]');
+        if (btn) btn.textContent = 'Mettre à jour le projet';
+        document.getElementById('portfolioPanel').scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        showAlert('portfolioAlert', 'Erreur: ' + err.message, 'error');
+      }
+    }
+
     async function togglePortfolio(id) {
+      if (editingPortfolioId === id) resetPortfolioForm();
       try {
         await fetch(`/api/portfolio/${id}/toggle`, {
           method: 'PATCH',
@@ -943,6 +973,7 @@
 
     async function deletePortfolio(id) {
       if (!confirm('Supprimer cette réalisation ?')) return;
+      if (editingPortfolioId === id) resetPortfolioForm();
       try {
         await fetch(`/api/portfolio/${id}`, {
           method: 'DELETE',
@@ -952,6 +983,30 @@
       } catch (err) {
         showAlert('portfolioAlert', 'Erreur: ' + err.message, 'error');
       }
+    }
+
+
+    function resetServiceForm() {
+      document.getElementById('serviceForm').reset();
+      editingServiceId = null;
+      const btn = document.querySelector('#serviceForm button[type="submit"]');
+      if (btn) btn.textContent = 'Ajouter le service';
+    }
+
+    function resetPackForm() {
+      document.getElementById('packForm').reset();
+      editingPackId = null;
+      const btn = document.querySelector('#packForm button[type="submit"]');
+      if (btn) btn.textContent = 'Ajouter le pack';
+    }
+
+    function resetPortfolioForm() {
+      document.getElementById('portfolioForm').reset();
+      editingPortfolioId = null;
+      document.getElementById('pfPreview').style.display = 'none';
+      document.getElementById('pfImagePath').value = '';
+      const btn = document.querySelector('#portfolioForm button[type="submit"]');
+      if (btn) btn.textContent = 'Ajouter au portfolio';
     }
 
     async function loadServicesAdmin() {
@@ -979,6 +1034,7 @@
           <td class="message-preview">${escapeHtml(s.description)}</td>
           <td>${s.order || 0}</td>
           <td>
+            <button class="btn btn-small btn-success" onclick="editService('${s._id}')">Modifier</button>
             <button class="btn btn-small btn-danger" onclick="deleteService('${s._id}')">Supprimer</button>
           </td>
         </tr>
@@ -996,15 +1052,17 @@
         order: document.getElementById('svcOrder').value
       };
       try {
-        const res = await fetch('/api/services', {
-          method: 'POST',
+        const url = editingServiceId ? `/api/services/${editingServiceId}` : '/api/services';
+        const method = editingServiceId ? 'PATCH' : 'POST';
+        const res = await fetch(url, {
+          method: method,
           headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
           body: JSON.stringify(data)
         });
         const result = await res.json();
         if (result.success) {
-          showAlert('servicesAlert', 'Service ajouté avec succès !', 'success');
-          document.getElementById('serviceForm').reset();
+          showAlert('servicesAlert', editingServiceId ? 'Service mis à jour !' : 'Service ajouté avec succès !', 'success');
+          resetServiceForm();
           loadServicesAdmin();
         } else {
           throw new Error(result.message);
@@ -1014,8 +1072,32 @@
       }
     });
 
+    async function editService(id) {
+      try {
+        const res = await fetch('/api/services/all', {
+          headers: { 'x-admin-password': adminPassword }
+        });
+        const data = await res.json();
+        const service = (data.services || []).find(s => s._id === id);
+        if (!service) throw new Error('Service non trouvé');
+        document.getElementById('svcIcon').value = service.icon || '🎨';
+        document.getElementById('svcTitle').value = service.title || '';
+        document.getElementById('svcTitleEn').value = service.titleEn || '';
+        document.getElementById('svcDescription').value = service.description || '';
+        document.getElementById('svcDescriptionEn').value = service.descriptionEn || '';
+        document.getElementById('svcOrder').value = service.order || 0;
+        editingServiceId = id;
+        const btn = document.querySelector('#serviceForm button[type="submit"]');
+        if (btn) btn.textContent = 'Mettre à jour le service';
+        document.getElementById('servicesPanel').scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        showAlert('servicesAlert', 'Erreur: ' + err.message, 'error');
+      }
+    }
+
     async function deleteService(id) {
       if (!confirm('Supprimer ce service ?')) return;
+      if (editingServiceId === id) resetServiceForm();
       try {
         await fetch(`/api/services/${id}`, {
           method: 'DELETE',
@@ -1054,6 +1136,7 @@
             <td class="message-preview">${escapeHtml(features)}</td>
             <td>${p.popular ? '⭐' : '-'}</td>
             <td>
+              <button class="btn btn-small btn-success" onclick="editPack('${p._id}')">Modifier</button>
               <button class="btn btn-small btn-danger" onclick="deletePack('${p._id}')">Supprimer</button>
             </td>
           </tr>
@@ -1075,15 +1158,17 @@
         order: document.getElementById('packOrder').value
       };
       try {
-        const res = await fetch('/api/packs', {
-          method: 'POST',
+        const url = editingPackId ? `/api/packs/${editingPackId}` : '/api/packs';
+        const method = editingPackId ? 'PATCH' : 'POST';
+        const res = await fetch(url, {
+          method: method,
           headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
           body: JSON.stringify(data)
         });
         const result = await res.json();
         if (result.success) {
-          showAlert('packsAlert', 'Pack ajouté avec succès !', 'success');
-          document.getElementById('packForm').reset();
+          showAlert('packsAlert', editingPackId ? 'Pack mis à jour !' : 'Pack ajouté avec succès !', 'success');
+          resetPackForm();
           loadPacksAdmin();
         } else {
           throw new Error(result.message);
@@ -1093,8 +1178,33 @@
       }
     });
 
+    async function editPack(id) {
+      try {
+        const res = await fetch('/api/packs/all', {
+          headers: { 'x-admin-password': adminPassword }
+        });
+        const data = await res.json();
+        const pack = (data.packs || []).find(p => p._id === id);
+        if (!pack) throw new Error('Pack non trouvé');
+        document.getElementById('packName').value = pack.name || '';
+        document.getElementById('packNameEn').value = pack.nameEn || '';
+        document.getElementById('packPrice').value = pack.price || '';
+        document.getElementById('packFeatures').value = (pack.features || []).join('\n');
+        document.getElementById('packFeaturesEn').value = (pack.featuresEn || []).join('\n');
+        document.getElementById('packPopular').checked = pack.popular || false;
+        document.getElementById('packOrder').value = pack.order || 0;
+        editingPackId = id;
+        const btn = document.querySelector('#packForm button[type="submit"]');
+        if (btn) btn.textContent = 'Mettre à jour le pack';
+        document.getElementById('packsPanel').scrollIntoView({ behavior: 'smooth' });
+      } catch (err) {
+        showAlert('packsAlert', 'Erreur: ' + err.message, 'error');
+      }
+    }
+
     async function deletePack(id) {
       if (!confirm('Supprimer ce pack ?')) return;
+      if (editingPackId === id) resetPackForm();
       try {
         await fetch(`/api/packs/${id}`, {
           method: 'DELETE',

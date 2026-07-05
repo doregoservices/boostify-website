@@ -13,6 +13,7 @@ const authRouter = require('./routes/auth');
 const portfolioRouter = require('./routes/portfolio');
 const servicesRouter = require('./routes/services');
 const packsRouter = require('./routes/packs');
+const { seedAll } = require('./utils/seed');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,8 +23,9 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (MONGODB_URI) {
   mongoose.connect(MONGODB_URI)
-    .then(() => {
+    .then(async () => {
       console.log('✅ Connecté à MongoDB');
+      await seedAll();
       configRouter.migrateLogo();
       portfolioRouter.migratePortfolioImages();
     })

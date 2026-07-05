@@ -90,7 +90,7 @@ const langData = {
     about: {
       role: "Infographiste & Brand Designer",
       p1: "Je suis Bello Shouaïb, fondateur de Boostify. Je conçois des identités visuelles impactantes et des supports de communication modernes pour entrepreneurs, entreprises et particuliers. Mon objectif : transformer vos idées en designs mémorables qui boostent votre image.",
-      p2: "Basé à Conzagüe Ville, je travaille avec des clients en Côte d'Ivoire et au-delà."
+      p2: "Basé à Cocody, Abidjan, je travaille avec des clients en Côte d'Ivoire et au-delà."
     },
     // Testimonials
     testimonials: {
@@ -213,7 +213,7 @@ const langData = {
     about: {
       role: "Graphic Designer & Brand Designer",
       p1: "I am Bello Shouaïb, founder of Boostify. I design impactful visual identities and modern communication materials for entrepreneurs, businesses and individuals. My goal: transform your ideas into memorable designs that boost your image.",
-      p2: "Based in Conzagüe Ville, I work with clients in Côte d'Ivoire and beyond."
+      p2: "Based in Cocody, Abidjan, I work with clients in Côte d'Ivoire and beyond."
     },
     // Testimonials
     testimonials: {
@@ -276,10 +276,11 @@ function setLanguage(lang) {
   const select = document.getElementById('pack');
   if (select) {
     select.options[0].textContent = langData[lang].contact.select;
-    select.options[3].textContent = langData[lang].packs.identity;
-    select.options[4].textContent = langData[lang].contact.website || (lang === 'fr' ? "Création de site web" : "Website creation");
-    select.options[5].textContent = lang === 'fr' ? "Publicités réseaux sociaux" : "Social media ads";
-    select.options[6].textContent = lang === 'fr' ? "Autre (précisez ci-dessous)" : "Other (specify below)";
+    // The other options are dynamic packs loaded by main.js, so only update the "Other" option if it exists
+    const otherOption = Array.from(select.options).find(o => o.value === 'Autre');
+    if (otherOption) {
+      otherOption.textContent = lang === 'fr' ? "Autre (précisez ci-dessous)" : "Other (specify below)";
+    }
   }
 
   // Update language preference select
